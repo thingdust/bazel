@@ -425,4 +425,6 @@ if [[ -n "$TEST_UNDECLARED_OUTPUTS_ZIP" ]] && cd "$TEST_UNDECLARED_OUTPUTS_DIR";
   fi
 fi
 
+export
+echo exitcode: $exitCode
 exit $exitCode

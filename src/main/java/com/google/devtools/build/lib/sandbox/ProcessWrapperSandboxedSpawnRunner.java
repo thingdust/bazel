@@ -14,6 +14,8 @@
 
 package com.google.devtools.build.lib.sandbox;
 
+import java.util.Map;
+import java.util.HashMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.build.lib.actions.Spawn;
@@ -92,8 +94,8 @@ final class ProcessWrapperSandboxedSpawnRunner extends AbstractSandboxSpawnRunne
     sandboxExecRoot.getParentDirectory().createDirectory();
     sandboxExecRoot.createDirectory();
 
-    ImmutableMap<String, String> environment =
-        localEnvProvider.rewriteLocalEnv(spawn.getEnvironment(), binTools, "/tmp");
+    ImmutableMap<String, String> environment = fixEnvironment(
+        localEnvProvider.rewriteLocalEnv(spawn.getEnvironment(), binTools, "/tmp"));
 
     Duration timeout = context.getTimeout();
     ProcessWrapper.CommandLineBuilder commandLineBuilder =

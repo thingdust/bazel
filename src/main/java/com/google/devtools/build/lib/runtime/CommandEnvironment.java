@@ -66,6 +66,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -165,6 +166,24 @@ public class CommandEnvironment {
       }
     }
   }
+
+	public Map<String, String> getActionEnvironment() {
+		Map<String, String> map = new HashMap<String,String>();
+		for (Map.Entry<String, String> entry :
+			options.getOptions(CoreOptions.class).actionEnvironment) {
+			map.put(entry.getKey(), entry.getValue());
+		}
+		return map;
+	}
+
+	public Map<String, String> getTestEnvironment() {
+		Map<String, String> map = new HashMap<String,String>();
+		for (Map.Entry<String, String> entry :
+			options.getOptions(CoreOptions.class).testEnvironment) {
+			map.put(entry.getKey(), entry.getValue());
+		}
+		return map;
+	}
 
   /**
    * Creates a new command environment which can be used for executing commands for the given

@@ -176,8 +176,8 @@ final class LinuxSandboxedSpawnRunner extends AbstractSandboxSpawnRunner {
     sandboxExecRoot.getParentDirectory().createDirectory();
     sandboxExecRoot.createDirectory();
 
-    ImmutableMap<String, String> environment =
-        localEnvProvider.rewriteLocalEnv(spawn.getEnvironment(), binTools, "/tmp");
+    ImmutableMap<String, String> environment = fixEnvironment(
+        localEnvProvider.rewriteLocalEnv(spawn.getEnvironment(), binTools, "/tmp"));
 
     ImmutableSet<Path> writableDirs = getWritableDirs(sandboxExecRoot, environment);
 

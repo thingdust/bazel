@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.joining;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.google.devtools.build.lib.actions.ActionExecutionMetadata;
 import com.google.devtools.build.lib.actions.ExecException;
 import com.google.devtools.build.lib.actions.ForbiddenActionInputException;
@@ -60,6 +61,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -78,6 +80,7 @@ abstract class AbstractSandboxSpawnRunner implements SpawnRunner {
   private final Path execRoot;
   private final ResourceManager resourceManager;
   private final Reporter reporter;
+  private final CommandEnvironment commandEnvironment;
 
   public AbstractSandboxSpawnRunner(CommandEnvironment cmdEnv) {
     this.sandboxOptions = cmdEnv.getOptions().getOptions(SandboxOptions.class);
@@ -88,6 +91,41 @@ abstract class AbstractSandboxSpawnRunner implements SpawnRunner {
     this.execRoot = cmdEnv.getExecRoot();
     this.resourceManager = cmdEnv.getLocalResourceManager();
     this.reporter = cmdEnv.getReporter();
+    this.commandEnvironment = cmdEnv;
+  }
+
+  
+
+  protected ImmutableMap<String, String> fixEnvironment(ImmutableMap<String, String> environmentUntouched) {
+    Map<String, String> environment = new HashMap<>(environmentUntouched);
+
+    Map<String, String> actionEnvironment = commandEnvironment.getActionEnvironment();
+    for (String key : actionEnvironment.keySet()) {
+      if (environment.get(key) == null) {
+        String overridenValue = actionEnvironment.get(key);
+        String envValue = commandEnvironment.getRepoEnv().get(key);
+        if (overridenValue != null) {
+          environment.put(key, overridenValue);
+        } else if (envValue != null) {
+          environment.put(key, envValue);
+        }
+      }
+    }
+
+    Map<String, String> testEnvironment = commandEnvironment.getTestEnvironment();
+    for (String key : testEnvironment.keySet()) {
+      if (environment.get(key) == null) {
+        String overridenValue = testEnvironment.get(key);
+        String envValue = commandEnvironment.getRepoEnv().get(key);
+        if (overridenValue != null) {
+          environment.put(key, overridenValue);
+        } else if (envValue != null) {
+          environment.put(key, envValue);
+        }
+      }
+    }
+
+    return ImmutableMap.copyOf(environment);
   }
 
   @Override

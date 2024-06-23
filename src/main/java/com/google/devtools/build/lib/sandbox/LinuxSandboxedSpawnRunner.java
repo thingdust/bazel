@@ -285,7 +285,7 @@ final class LinuxSandboxedSpawnRunner extends AbstractSandboxSpawnRunner {
 
     SandboxOutputs outputs = helpers.getOutputs(spawn);
     ImmutableMap<String, String> environment =
-        localEnvProvider.rewriteLocalEnv(spawn.getEnvironment(), binTools, "/tmp");
+        fixEnvironment(localEnvProvider.rewriteLocalEnv(spawn.getEnvironment(), binTools, "/tmp"));
     ImmutableSet<Path> writableDirs = getWritableDirs(sandboxExecRoot, environment);
     Duration timeout = context.getTimeout();
     SandboxOptions sandboxOptions = getSandboxOptions();

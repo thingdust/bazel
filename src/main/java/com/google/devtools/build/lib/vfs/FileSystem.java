@@ -827,21 +827,19 @@ public abstract class FileSystem {
   protected void prefetchPackageAsync(PathFragment path, int maxDirs) {}
 
   /**
-   * Returns a {@link File} object for the given path. This method is only supported by file system
-   * implementations that are backed by the local file system.
+   * Returns a {@link File} object for the given path or null if this file system implementation is
+   * not backed by the local file system.
    */
   protected File getIoFile(PathFragment path) {
-    throw new UnsupportedOperationException(
-        "getIoFile() not supported for " + getClass().getName());
+    return null;
   }
 
   /**
-   * Returns a {@link java.nio.file.Path} object for the given path. This method is only supported
-   * by file system implementations that are backed by the local file system.
+   * Returns a {@link java.nio.file.Path} object for the given path or null if this file system
+   * implementation is not backed by the local file system.
    */
   protected java.nio.file.Path getNioPath(PathFragment path) {
-    throw new UnsupportedOperationException(
-        "getNioPath() not supported for " + getClass().getName());
+    return null;
   }
 
   /**

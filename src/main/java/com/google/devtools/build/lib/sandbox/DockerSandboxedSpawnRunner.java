@@ -59,6 +59,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.devtools.build.lib.sandbox.DockerCommandLineBuilder.NetworkNamespace.*;
+
 /** Spawn runner that uses Docker to execute a local subprocess. */
 final class DockerSandboxedSpawnRunner extends AbstractSandboxSpawnRunner {
 
@@ -241,6 +243,8 @@ final class DockerSandboxedSpawnRunner extends AbstractSandboxSpawnRunner {
     String customizedImageName = getOrCreateCustomizedImage(baseImageName);
 
     DockerCommandLineBuilder cmdLine = new DockerCommandLineBuilder();
+    boolean createNetworkNamespace =
+            !(allowNetwork || Spawns.requiresNetwork(spawn, getSandboxOptions().defaultSandboxAllowNetwork));
     cmdLine
         .setProcessWrapper(processWrapper)
         .setDockerClient(dockerClient)
@@ -251,9 +255,7 @@ final class DockerSandboxedSpawnRunner extends AbstractSandboxSpawnRunner {
         .setAdditionalMounts(getSandboxOptions().sandboxAdditionalMounts)
         .setPrivileged(getSandboxOptions().dockerPrivileged)
         .setEnvironmentVariables(environment)
-        .setCreateNetworkNamespace(
-            !(allowNetwork
-                || Spawns.requiresNetwork(spawn, getSandboxOptions().defaultSandboxAllowNetwork)))
+        .setCreateNetworkNamespace(createNetworkNamespace ? getNetworkNamespace() : NO_NETNS)
         .setCommandId(commandId)
         .setUuid(uuid);
     // If uid / gid are -1, we are on an operating system that doesn't require us to set them on the
@@ -491,5 +493,12 @@ final class DockerSandboxedSpawnRunner extends AbstractSandboxSpawnRunner {
   @Override
   public String getName() {
     return "docker";
+  }
+
+  private final DockerCommandLineBuilder.NetworkNamespace getNetworkNamespace() {
+    if (getSandboxOptions().sandboxEnableLoopbackDevice) {
+      return NETNS_WITH_LOOPBACK;
+    }
+    return NETNS;
   }
 }

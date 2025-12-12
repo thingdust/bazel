@@ -29,6 +29,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.google.devtools.build.lib.sandbox.DockerCommandLineBuilder.NetworkNamespace.NETNS_WITH_LOOPBACK;
+import static com.google.devtools.build.lib.sandbox.DockerCommandLineBuilder.NetworkNamespace.NETNS;
+
 final class DockerCommandLineBuilder {
   private ProcessWrapper processWrapper;
   private Path dockerClient;
@@ -37,7 +40,7 @@ final class DockerCommandLineBuilder {
   private Path sandboxExecRoot;
   private Map<String, String> environmentVariables;
   private Duration timeout;
-  private boolean createNetworkNamespace;
+  private NetworkNamespace createNetworkNamespace = NetworkNamespace.NO_NETNS;
   private UUID uuid;
   private int uid;
   private int gid;
@@ -90,7 +93,7 @@ final class DockerCommandLineBuilder {
   }
 
   @CanIgnoreReturnValue
-  public DockerCommandLineBuilder setCreateNetworkNamespace(boolean createNetworkNamespace) {
+  public DockerCommandLineBuilder setCreateNetworkNamespace(NetworkNamespace createNetworkNamespace) {
     this.createNetworkNamespace = createNetworkNamespace;
     return this;
   }
@@ -149,9 +152,9 @@ final class DockerCommandLineBuilder {
     dockerCmdLine.add(dockerClient.getPathString());
     dockerCmdLine.add("run");
     dockerCmdLine.add("--rm");
-    if (createNetworkNamespace) {
+    if (createNetworkNamespace == NETNS_WITH_LOOPBACK) {
       dockerCmdLine.add("--network=none");
-    } else {
+    } else if (createNetworkNamespace == NETNS) {
       dockerCmdLine.add("--network=host");
     }
     if (privileged) {
@@ -204,5 +207,15 @@ final class DockerCommandLineBuilder {
       processWrapperCmdLine.setTimeout(timeout);
     }
     return processWrapperCmdLine.build();
+  }
+
+  /** Enum for the possibilities for creating a network namespace in the sandbox. */
+  enum NetworkNamespace {
+    /** No network namespace will be created, sandboxed processes can access the network freely. */
+    NO_NETNS,
+    /** A fresh network namespace will be created. */
+    NETNS,
+    /** A fresh network namespace will be created, and a loopback device will be set up in it. */
+    NETNS_WITH_LOOPBACK,
   }
 }
